@@ -4,6 +4,16 @@ import matplotlib.pyplot as plt
 from scipy.stats import chi2_contingency
 from sympy import symbols, integrate, solve, log, exp
 
+def check_bins(n):
+    m = 0
+    if n <= 500:
+        m = n // 15
+    elif n > 1000:
+        m = 100
+    else:
+        m = 25
+    return m
+
 z = symbols('z', real=True, positive=True)
 u = symbols('u', real=True, positive=True)
 
@@ -30,8 +40,11 @@ samples = {n: random_generator(n) for n in sample_sizes}
 sample_statistics = {n: (np.mean(samples[n]), np.var(samples[n], ddof=1)) for n in sample_sizes}
 
 def plot_histogram(sample, n, theoretical_pdf, xlims=(1, 3)):
+
+    m = check_bins(len(sample))
+
     plt.figure(figsize=(10, 6))
-    plt.hist(sample, bins=100, density=True, alpha=0.6, label=f'Размер выборки n={n}')
+    plt.hist(sample, bins=m, density=True, alpha=0.6, label=f'Размер выборки n={n}')
     z_vals = np.linspace(xlims[0], xlims[1], 1000)
     plt.plot(z_vals, theoretical_pdf(z_vals), 'r', label='Теоретическая плотность вероятности')
     plt.xlim(xlims)
@@ -41,15 +54,18 @@ def plot_histogram(sample, n, theoretical_pdf, xlims=(1, 3)):
     plt.legend()
     plt.show()
 
-def chi_square_test(sample, theoretical_pdf, bins=100, xlims=(1, 3)):
-    observed_freq, bin_edges = np.histogram(sample, bins=bins, range=xlims, density=True)
+def chi_square_test(sample, theoretical_pdf, xlims=(1, 3)):
+
+    m = check_bins(len(sample))
+
+    observed_freq, bin_edges = np.histogram(sample, bins=m, range=xlims, density=True)
     observed_freq = observed_freq.astype('float')
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     expected_freq = theoretical_pdf(bin_centers) * (bin_edges[1] - bin_edges[0]) * len(sample)
     chi2_stat, p_value = chi2_contingency([observed_freq, expected_freq])[0:2]
     return chi2_stat, p_value
 
-chi_square_results = {n: chi_square_test(samples[n], theoretical_pdf, bins=20) for n in sample_sizes}
+chi_square_results = {n: chi_square_test(samples[n], theoretical_pdf) for n in sample_sizes}
 
 print("Математическое ожидание и дисперсия для каждой выборки:")
 print(sample_statistics)

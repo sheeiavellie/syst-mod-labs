@@ -40,6 +40,9 @@ func (m *MooreMachine) Transition(input string) {
 	fmt.Println("Выход:", m.TransTable[m.CurState]["output"])
 }
 
+var initState string
+var input string
+
 func main() {
 	states := []string{"S0", "S1", "S2", "S3", "S4", "S5"}
 	inputs := []string{"I0", "I1", "I2", "I3", "I4", "I5"}
@@ -54,10 +57,24 @@ func main() {
 		"S5": {"I0": "S0", "I1": "S1", "I2": "S2", "I3": "S3", "I4": "S4", "I5": "S5", "output": "O1"},
 	}
 
-	mooreMachine := NewMooreMachine(states, inputs, outputs, transTable, "S0")
-	mooreMachine.Transition("I0")
-	mooreMachine.Transition("I3")
-	mooreMachine.Transition("I1")
-	mooreMachine.Transition("I2")
-}
+	fmt.Print("Введите начальное состояние: ")
+	_, err := fmt.Scanf("%s", &initState)
+	if err != nil {
+		fmt.Println(err, ": Incorrect input error")
+	}
+	mooreMachine := NewMooreMachine(states, inputs, outputs, transTable, initState)
 
+	for {
+		fmt.Print("Введите вход или q для выхода: ")
+		_, err := fmt.Scanf("%s", &input)
+		if err != nil {
+			fmt.Println(err, ": Incorrect input error")
+		}
+
+		if input == "q" {
+			break
+		}
+
+		mooreMachine.Transition(input)
+	}
+}
